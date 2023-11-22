@@ -2,6 +2,7 @@
 // gmview.c: map view
 //---------------------------------------------------------------------------
 #include <vcl.h>
+#include <stdio.h>
 #pragma hdrstop
 #include <mshtml.h>
 #include "gmview.h"

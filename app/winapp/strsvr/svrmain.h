@@ -15,7 +15,6 @@
 
 #include "rtklib.h"
 #include "tcpoptdlg.h"
-#include <System.ImageList.hpp>
 
 #define MAXSTR        7    // number of streams
 

@@ -15,7 +15,6 @@
 #include <Menus.hpp>
 
 #include "rtklib.h"
-#include <System.ImageList.hpp>
 
 #define MAXSCALE	18
 #define MAXMAPPNT	10
@@ -28,10 +27,10 @@ __published:
 	TPanel *Panel2;
 	TPanel *Panel3;
 	TPanel *Panel11;
-	
+
 	TLabel *LabelTime;
 	TLabel *Message;
-	
+
 	TPopupMenu *PopupMenu;
 	TMenuItem *MenuMonitor;
 	TMenuItem *MenuExpand;
@@ -41,15 +40,15 @@ __published:
 	TMenuItem *N2;
 	TMenuItem *MenuExit;
 	TMenuItem *MenuStop;
-	
+
 	TSpeedButton *BtnTimeSys;
-	
+
 	TTrayIcon *TrayIcon;
-	
+
 	TSaveDialog *SaveDialog;
-	
+
 	TImageList *ImageList;
-	
+
 	TTimer *Timer;
 	TPanel *Panel4;
 	TSpeedButton *BtnTaskTray;
@@ -137,40 +136,40 @@ __published:
 	TSpeedButton *BtnShrink4;
 	TSplitter *Splitter3;
 	TSplitter *Splitter4;
-	
+
 	void __fastcall FormCreate        (TObject *Sender);
 	void __fastcall FormShow          (TObject *Sender);
 	void __fastcall FormClose         (TObject *Sender, TCloseAction &Action);
-	
+
 	void __fastcall TimerTimer        (TObject *Sender);
-	
+
 	void __fastcall BtnStartClick     (TObject *Sender);
 	void __fastcall BtnStopClick      (TObject *Sender);
 	void __fastcall BtnPlotClick      (TObject *Sender);
 	void __fastcall BtnOptClick       (TObject *Sender);
 	void __fastcall BtnExitClick      (TObject *Sender);
-	
+
 	void __fastcall BtnTimeSysClick   (TObject *Sender);
 	void __fastcall BtnInputStrClick  (TObject *Sender);
 	void __fastcall BtnOutputStrClick (TObject *Sender);
 	void __fastcall BtnLogStrClick    (TObject *Sender);
 	void __fastcall BtnSolTypeClick   (TObject *Sender);
 	void __fastcall BtnPlotType1Click  (TObject *Sender);
-	
+
 	void __fastcall BtnMonitorClick   (TObject *Sender);
 	void __fastcall BtnSaveClick      (TObject *Sender);
 	void __fastcall BtnAboutClick     (TObject *Sender);
 	void __fastcall BtnTaskTrayClick  (TObject *Sender);
-	
+
 	void __fastcall MenuExpandClick   (TObject *Sender);
 	void __fastcall MenuStartClick    (TObject *Sender);
 	void __fastcall MenuStopClick     (TObject *Sender);
 	void __fastcall MenuPlotClick     (TObject *Sender);
 	void __fastcall MenuMonitorClick  (TObject *Sender);
 	void __fastcall MenuExitClick     (TObject *Sender);
-	
+
 	void __fastcall ScbSolChange      (TObject *Sender);
-	
+
 	void __fastcall TrayIconDblClick  (TObject *Sender);
 	void __fastcall BtnFreqType1Click(TObject *Sender);
 	void __fastcall Panel22Resize(TObject *Sender);
@@ -210,7 +209,7 @@ private:
 	void __fastcall UpdateEnable (void);
 	void __fastcall ChangePlot   (void);
 	int  __fastcall ConfOverwrite(const char *path);
-	
+
 	void __fastcall DrawSnr      (TCanvas *c, int w, int h, int x0, int y0, int index, int freq);
 	void __fastcall DrawSat      (TCanvas *c, int w, int h, int x0, int y0, int index, int freq);
 	void __fastcall DrawBL       (TImage *plot, int w, int h);
@@ -232,7 +231,7 @@ private:
 	TColor __fastcall SnrColor   (int snr);
 public:
 	AnsiString IniFile;
-	
+
 	int TimerCycle,TimerInact;
 	int PanelStack,PanelMode;
 	int SvrCycle,SvrBuffSize,Scale,SolBuffSize,NavSelect,SavedSol;
@@ -248,7 +247,7 @@ public:
 	int TrkScale1,TrkScale2,TrkScale3,TrkScale4;
 	int BLMode1,BLMode2,BLMode3,BLMode4;
 	int MoniPort,OpenPort,AutoRun;
-	
+
 	int PSol,PSolS,PSolE,Nsat[2],SolCurrentStat;
 	int Sat[2][MAXSAT],Snr[2][MAXSAT][NFREQ],Vsat[2][MAXSAT];
 	double Az[2][MAXSAT],El[2][MAXSAT];
@@ -269,14 +268,14 @@ public:
 	double RovAntDel[3],RefAntDel[3],RovPos[3],RefPos[3],NmeaPos[3];
 	double Baseline[2];
 	AnsiString History[10],MntpHist[10];
-	
+
 	AnsiString GeoidDataFileF,StaPosFileF,DCBFileF,EOPFileF;
 	AnsiString LocalDirectory,PntName[MAXMAPPNT];
 	double PntPos[MAXMAPPNT][3];
 	int NMapPnt;
-	
+
 	AnsiString MarkerName,MarkerComment;
-	
+
 	__fastcall TMainForm(TComponent* Owner);
 };
 //---------------------------------------------------------------------------

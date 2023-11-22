@@ -14,8 +14,8 @@
 //                       tcpcli://addr[:port]
 //                       ntrip://[user[:passwd]@]addr[:port][/mntpnt]
 //                       file://path
-//           -p1 path  connect port 1 to path 
-//           -p2 path  connect port 2 to path 
+//           -p1 path  connect port 1 to path
+//           -p2 path  connect port 2 to path
 //           -x level  debug trace level (0:off)
 //           file      solution files or rinex obs/nav file
 //
@@ -81,12 +81,12 @@ __fastcall TPlot::TPlot(TComponent* Owner) : TForm(Owner)
     double ep[]={2000,1,1,0,0,0},xl[2],yl[2];
     double xs[]={-DEFTSPAN/2,DEFTSPAN/2};
     char file[1024]="rtkplot.exe",*p;
-    
+
     ::GetModuleFileName(NULL,file,sizeof(file));
     if (!(p=strrchr(file,'.'))) p=file+strlen(file);
     strcpy(p,".ini");
     IniFile=file;
-    
+
     FormWidth=FormHeight=0;
     Drag=0; Xn=Yn=-1; NObs=0;
     IndexObs=NULL;
@@ -103,7 +103,7 @@ __fastcall TPlot::TPlot(TComponent* Owner) : TForm(Owner)
     Sta=sta0;
     Gis=gis0;
     SimObs=0;
-    
+
     X0=Y0=Xc=Yc=Xs=Ys=Xcent=0.0;
     MouseDownTick=0;
     GEState=GEDataState[0]=GEDataState[1]=0;
@@ -123,7 +123,7 @@ __fastcall TPlot::TPlot(TComponent* Owner) : TForm(Owner)
     SkyImageR=new Graphics::TBitmap;
     GraphT =new TGraph(Disp);
     GraphT->Fit=0;
-    
+
     for (int i=0;i<3;i++) {
         GraphG[i]=new TGraph(Disp);
         GraphG[i]->XLPos=0;
@@ -137,16 +137,16 @@ __fastcall TPlot::TPlot(TComponent* Owner) : TForm(Owner)
     GraphS=new TGraph(Disp);
     GraphR->GetLim(xl,yl);
     GraphR->SetLim(xs,yl);
-    
+
     MapSize[0]=MapSize[1]=0;
     MapScaleX=MapScaleY=0.1;
     MapScaleEq=0;
     MapLat=MapLon=0.0;
     PointType=0;
-    
+
     NWayPnt=0;
     SelWayPnt=-1;
-    
+
     SkySize[0]=SkySize[1]=SkyCent[0]=SkyCent[1]=0;
     SkyScale=SkyScaleR=240.0;
     SkyFov[0]=SkyFov[1]=SkyFov[2]=0.0;
@@ -156,7 +156,7 @@ __fastcall TPlot::TPlot(TComponent* Owner) : TForm(Owner)
     SkyBinarize=0;
     SkyBinThres1=0.3;
     SkyBinThres2=0.1;
-    
+
     for (int i=0;i<3;i++) TimeEna[i]=0;
     TimeLabel=AutoScale=ShowStats=0;
     ShowLabel=ShowGLabel=1;
@@ -169,25 +169,25 @@ __fastcall TPlot::TPlot(TComponent* Owner) : TForm(Owner)
     DoubleBuffered=true;
     Console1=new TConsole(Owner);
     Console2=new TConsole(Owner);
-    
+
     for (int i=0;i<361;i++) ElMaskData[i]=0.0;
-    
+
     Trace=0;
     ConnectState=OpenRaw=0;
     RtConnType=0;
     strinitcom();
     strinit(Stream  );
     strinit(Stream+1);
-    
+
     FrqType->Items->Clear();
     for (int i=0;i<NFREQ;i++) {
         FrqType->Items->Add(s.sprintf("L%d",i+1));
     }
     FrqType->ItemIndex=0;
-    
+
     TLEData.n=TLEData.nmax=0;
     TLEData.data=NULL;
-    
+
     // set current directory as commend search path
     AnsiString cd=GetCurrentDir();
     ::SetEnvironmentVariable("PATH",cd.c_str());
@@ -204,12 +204,12 @@ void __fastcall TPlot::FormShow(TObject *Sender)
     int i,argc=0;
     char *p,*argv[32],buff[1024],str_path[256];
     const char *path1="",*path2="";
-    
+
     trace(3,"FormShow\n");
-    
+
     cmd=GetCommandLine();
     strcpy(buff,cmd.c_str());
-    
+
     for (p=buff;*p&&argc<32;p++) {
         if (*p==' ') continue;
         if (*p=='"') {
@@ -241,13 +241,13 @@ void __fastcall TPlot::FormShow(TObject *Sender)
         tracelevel(Trace);
     }
     LoadOpt();
-    
+
     UpdateType(PlotType>=PLOT_OBS?PLOT_TRK:PlotType);
-    
+
     UpdateColor();
     UpdateSatMask();
     UpdateOrigin();
-    
+
     if (*path1||*path2) {
         ConnectPath(path1,0);
         ConnectPath(path2,1);
@@ -263,12 +263,12 @@ void __fastcall TPlot::FormShow(TObject *Sender)
             paths[i]=new char [1024];
         }
         int n=expath(ShapeFile.c_str(),paths,MAXSHAPEFILE);
-        
+
         for (int i=0;i<n;i++) {
             files->Add(paths[i]);
         }
         ReadShapeFile(files);
-        
+
         for (int i=0;i<MAXSHAPEFILE;i++) {
             delete [] paths[i];
         }
@@ -291,7 +291,7 @@ void __fastcall TPlot::FormShow(TObject *Sender)
     }
     strinit(&StrTimeSync);
     NStrBuff=0;
-    
+
     if (TimeSyncOut) {
         sprintf(str_path,":%d",TimeSyncPort);
         stropen(&StrTimeSync,STR_TCPSVR,STR_MODE_RW,str_path);
@@ -304,16 +304,16 @@ void __fastcall TPlot::FormShow(TObject *Sender)
 void __fastcall TPlot::FormClose(TObject *Sender, TCloseAction &Action)
 {
     trace(3,"FormClose\n");
-    
+
     SaveOpt();
-    
+
     if (Trace>0) traceclose();
 }
 // callback on form-activation ----------------------------------------------
 void __fastcall TPlot::FormActivate(TObject *Sender)
 {
     trace(3,"FormActivate\n");
-    
+
     if (OpenFiles->Count>0) {
         if (CheckObs(OpenFiles->Strings[0])||OpenRaw) ReadObs(OpenFiles);
         else ReadSol(OpenFiles,0);
@@ -323,13 +323,13 @@ void __fastcall TPlot::FormActivate(TObject *Sender)
 void __fastcall TPlot::FormResize(TObject *Sender)
 {
     trace(3,"FormResize\n");
-    
+
     // suppress repeated resize callback
     if (FormWidth==Width&&FormHeight==Height) return;
-    
+
     UpdateSize();
     Refresh();
-    
+
     FormWidth =Width;
     FormHeight=Height;
 }
@@ -340,9 +340,9 @@ void __fastcall TPlot::DropFiles(TWMDropFiles msg)
     AnsiString file;
     int n;
     char buff[1024],*ext;
-    
+
     trace(3,"DropFiles\n");
-    
+
     if (ConnectState||
         (n=DragQueryFile((HDROP)msg.Drop,0xFFFFFFFF,NULL,0))<=0) {
         delete files;
@@ -353,7 +353,7 @@ void __fastcall TPlot::DropFiles(TWMDropFiles msg)
         files->Add(buff);
     }
     file=files->Strings[0];
-    
+
     if (n==1&&(ext=strrchr(file.c_str(),'.'))&&
         (!strcmp(ext,".jpg")||!strcmp(ext,".jpeg")||
          !strcmp(ext,".JPG")||!strcmp(ext,".JPEG"))) {
@@ -379,7 +379,7 @@ void __fastcall TPlot::DropFiles(TWMDropFiles msg)
 void __fastcall TPlot::MenuOpenSol1Click(TObject *Sender)
 {
     trace(3,"MenuOpenSol1Click\n");
-    
+
     OpenSolDialog->Title="Open Solution 1";
     if (!OpenSolDialog->Execute()) return;
     ReadSol(OpenSolDialog->Files,0);
@@ -388,7 +388,7 @@ void __fastcall TPlot::MenuOpenSol1Click(TObject *Sender)
 void __fastcall TPlot::MenuOpenSol2Click(TObject *Sender)
 {
     trace(3,"MenuOpenSol2Click\n");
-    
+
     OpenSolDialog->Title="Open Solution 2";
     if (!OpenSolDialog->Execute()) return;
     ReadSol(OpenSolDialog->Files,1);
@@ -397,7 +397,7 @@ void __fastcall TPlot::MenuOpenSol2Click(TObject *Sender)
 void __fastcall TPlot::MenuOpenMapImageClick(TObject *Sender)
 {
     trace(3,"MenuOpenMapImageClick\n");
-    
+
     OpenMapDialog->Title="Open Map Image";
     OpenMapDialog->FileName=MapImageFile;
     if (!OpenMapDialog->Execute()) return;
@@ -407,7 +407,7 @@ void __fastcall TPlot::MenuOpenMapImageClick(TObject *Sender)
 void __fastcall TPlot::MenuOpenShapeClick(TObject *Sender)
 {
     trace(3,"MenuOpenShapeClick\n");
-    
+
     if (!OpenMapPathDialog->Execute()) return;
     ReadShapeFile(OpenMapPathDialog->Files);
 }
@@ -415,7 +415,7 @@ void __fastcall TPlot::MenuOpenShapeClick(TObject *Sender)
 void __fastcall TPlot::MenuOpenSkyImageClick(TObject *Sender)
 {
     trace(3,"MenuOpenSkyImageClick\n");
-    
+
     OpenMapDialog->Title="Open Sky Image";
     OpenMapDialog->FileName=SkyImageFile;
     if (!OpenMapDialog->Execute()) return;
@@ -425,7 +425,7 @@ void __fastcall TPlot::MenuOpenSkyImageClick(TObject *Sender)
 void __fastcall TPlot::MenuOpenWaypointClick(TObject *Sender)
 {
     trace(3,"MenuOpenWaypointClick\n");
-    
+
     if (!OpenWaypointDialog->Execute()) return;
     ReadWaypoint(OpenWaypointDialog->FileName);
 }
@@ -433,7 +433,7 @@ void __fastcall TPlot::MenuOpenWaypointClick(TObject *Sender)
 void __fastcall TPlot::MenuOpenObsClick(TObject *Sender)
 {
     trace(3,"MenuOpenObsClick\n");
-    
+
     OpenObsDialog->FilterIndex=1;
     if (!OpenObsDialog->Execute()) return;
     ReadObs(OpenObsDialog->Files);
@@ -442,7 +442,7 @@ void __fastcall TPlot::MenuOpenObsClick(TObject *Sender)
 void __fastcall TPlot::MenuOpenNavClick(TObject *Sender)
 {
     trace(3,"MenuOpenNavClick\n");
-    
+
     OpenObsDialog->FilterIndex=2;
     if (!OpenObsDialog->Execute()) return;
     ReadNav(OpenObsDialog->Files);
@@ -451,7 +451,7 @@ void __fastcall TPlot::MenuOpenNavClick(TObject *Sender)
 void __fastcall TPlot::MenuOpenElevMaskClick(TObject *Sender)
 {
     trace(3,"MenuOpenElevMaskClick\n");
-    
+
     if (!OpenElMaskDialog->Execute()) return;
     ReadElMaskData(OpenElMaskDialog->FileName);
 }
@@ -471,7 +471,7 @@ void __fastcall TPlot::MenuVisAnaClick(TObject *Sender)
     }
     SpanDialog->TimeEna[0]=SpanDialog->TimeEna[1]=SpanDialog->TimeEna[2]=1;
     SpanDialog->TimeVal[0]=SpanDialog->TimeVal[1]=SpanDialog->TimeVal[2]=2;
-    
+
     if (SpanDialog->ShowModal()==mrOk) {
         TimeStart=SpanDialog->TimeStart;
         TimeEnd=SpanDialog->TimeEnd;
@@ -484,11 +484,11 @@ void __fastcall TPlot::MenuVisAnaClick(TObject *Sender)
 void __fastcall TPlot::MenuSaveImageClick(TObject *Sender)
 {
     char file[1024],*ext;
-    
+
     if (!SaveImageDialog->Execute()) return;
-    
+
     strcpy(file,U2A(SaveImageDialog->FileName).c_str());
-    
+
     if ((ext=strrchr(file,'.'))&&
         (!strcmp(ext,".jpg")||!strcmp(ext,".jpeg")||
          !strcmp(ext,".JPG")||!strcmp(ext,".JPEG"))) {
@@ -505,59 +505,59 @@ void __fastcall TPlot::MenuSaveImageClick(TObject *Sender)
 void __fastcall TPlot::MenuSaveWaypointClick(TObject *Sender)
 {
     trace(3,"MenuSaveWaypointClick\n");
-    
+
     if (!SaveWaypointDialog->Execute()) return;
-    
+
     SaveWaypoint(SaveWaypointDialog->FileName);
 }
 // callback on menu-save-# of sats/dop --------------------------------------
 void __fastcall TPlot::MenuSaveDopClick(TObject *Sender)
 {
     trace(3,"MenuSaveDopClick\n");
-    
+
     if (!SaveDialog->Execute()) return;
-    
+
     SaveDop(SaveDialog->FileName);
 }
 // callback on menu-save-snr,azel -------------------------------------------
 void __fastcall TPlot::MenuSaveSnrMpClick(TObject *Sender)
 {
     trace(3,"MenuSaveSnrMpClick\n");
-    
+
     if (!SaveDialog->Execute()) return;
-    
+
     SaveSnrMp(SaveDialog->FileName);
 }
 // callback on menu-save-elmask ---------------------------------------------
 void __fastcall TPlot::MenuSaveElMaskClick(TObject *Sender)
 {
     trace(3,"MenuSaveElMaskClick\n");
-    
+
     if (!SaveDialog->Execute()) return;
-    
+
     SaveElMask(SaveDialog->FileName);
 }
 // callback on menu-connect -------------------------------------------------
 void __fastcall TPlot::MenuConnectClick(TObject *Sender)
 {
     trace(3,"MenuConnectClick\n");
-    
+
     Connect();
 }
 // callback on menu-disconnect ----------------------------------------------
 void __fastcall TPlot::MenuDisconnectClick(TObject *Sender)
 {
     trace(3,"MenuDisconnectClick\n");
-    
+
     Disconnect();
 }
 // callback on menu-connection-settings -------------------------------------
 void __fastcall TPlot::MenuPortClick(TObject *Sender)
 {
     int i;
-    
+
     trace(3,"MenuPortClick\n");
-    
+
     ConnectDialog->Stream1 =RtStream[0];
     ConnectDialog->Stream2 =RtStream[1];
     ConnectDialog->Format1 =RtFormat[0];
@@ -578,9 +578,9 @@ void __fastcall TPlot::MenuPortClick(TObject *Sender)
         ConnectDialog->CmdEna2[i]=StrCmdEna[1][i];
     }
     for (i=0;i<10;i++) ConnectDialog->TcpHistory [i]=StrHistory [i];
-    
+
     if (ConnectDialog->ShowModal()!=mrOk) return;
-    
+
     RtStream[0]=ConnectDialog->Stream1;
     RtStream[1]=ConnectDialog->Stream2;
     RtFormat[0]=ConnectDialog->Format1;
@@ -606,21 +606,21 @@ void __fastcall TPlot::MenuPortClick(TObject *Sender)
 void __fastcall TPlot::MenuReloadClick(TObject *Sender)
 {
     trace(3,"MenuReloadClick\n");
-    
+
     Reload();
 }
 // callback on menu-clear ---------------------------------------------------
 void __fastcall TPlot::MenuClearClick(TObject *Sender)
 {
     trace(3,"MenuClearClick\n");
-    
+
     Clear();
 }
 // callback on menu-exit-----------------------------------------------------
 void __fastcall TPlot::MenuQuitClick(TObject *Sender)
 {
     trace(3,"MenuQuitClick\n");
-    
+
     Close();
 }
 // callback on menu-time-span/interval --------------------------------------
@@ -628,9 +628,9 @@ void __fastcall TPlot::MenuTimeClick(TObject *Sender)
 {
     sol_t *sols,*sole;
     int i;
-    
+
     trace(3,"MenuTimeClick\n");
-    
+
     if (!TimeEna[0]) {
         if (Obs.n>0) {
             TimeStart=Obs.data[0].time;
@@ -665,22 +665,22 @@ void __fastcall TPlot::MenuTimeClick(TObject *Sender)
     SpanDialog->TimeInt  =TimeInt;
     SpanDialog->TimeVal[0]=!ConnectState;
     SpanDialog->TimeVal[1]=!ConnectState;
-    
+
     if (SpanDialog->ShowModal()!=mrOk) return;
-    
+
     if (TimeEna[0]!=SpanDialog->TimeEna[0]||
         TimeEna[1]!=SpanDialog->TimeEna[1]||
         TimeEna[2]!=SpanDialog->TimeEna[2]||
         timediff(TimeStart,SpanDialog->TimeStart)!=0.0||
         timediff(TimeEnd,SpanDialog->TimeEnd)!=0.0||
         TimeInt!=SpanDialog->TimeInt) {
-        
+
         for (i=0;i<3;i++) TimeEna[i]=SpanDialog->TimeEna[i];
-        
+
         TimeStart=SpanDialog->TimeStart;
         TimeEnd  =SpanDialog->TimeEnd;
         TimeInt  =SpanDialog->TimeInt;
-        
+
         Reload();
     }
 }
@@ -688,21 +688,21 @@ void __fastcall TPlot::MenuTimeClick(TObject *Sender)
 void __fastcall TPlot::MenuMapImgClick(TObject *Sender)
 {
     trace(3,"MenuMapImgClick\n");
-    
+
     MapOptDialog->Show();
 }
 // callback on menu-sky image -----------------------------------------------
 void __fastcall TPlot::MenuSkyImgClick(TObject *Sender)
 {
     trace(3,"MenuSkyImgClick\n");
-    
+
     SkyImgDialog->Show();
 }
 // callback on menu-vec map -------------------------------------------------
 void __fastcall TPlot::MenuMapLayerClick(TObject *Sender)
 {
     trace(3,"MenuMapLayerClick\n");
-    
+
 	VecMapDialog->Show();
 }
 // callback on menu-solution-source -----------------------------------------
@@ -710,9 +710,9 @@ void __fastcall TPlot::MenuSrcSolClick(TObject *Sender)
 {
     TTextViewer *viewer=new TTextViewer(Application);
     int sel=!BtnSol1->Down&&BtnSol2->Down;
-    
+
     trace(3,"MenuSrcSolClick\n");
-    
+
     if (SolFiles[sel]->Count<=0) return;
     viewer->Caption=SolFiles[sel]->Strings[0];
     viewer->Option=0;
@@ -726,25 +726,25 @@ void __fastcall TPlot::MenuSrcObsClick(TObject *Sender)
     AnsiString file;
     char tmpfile[1024];
     int cstat;
-    
+
     trace(3,"MenuSrcObsClick\n");
-    
+
     if (ObsFiles->Count<=0) return;
-    
+
     file=ObsFiles->Strings[0];
     cstat=rtk_uncompress(file.c_str(),tmpfile);
     viewer=new TTextViewer(Application);
     viewer->Caption=ObsFiles->Strings[0];
     viewer->Option=0;
     viewer->Show();
-    viewer->Read(!cstat?file:tmpfile);
+    viewer->Read((!cstat)?file:AnsiString(tmpfile));
     if (cstat) remove(tmpfile);
 }
 // callback on menu-copy-to-clipboard ---------------------------------------
 void __fastcall TPlot::MenyCopyClick(TObject *Sender)
 {
     trace(3,"MenuCopyClick\n");
-    
+
     Clipboard()->Assign(Buff);
 }
 // callback on menu-options -------------------------------------------------
@@ -753,20 +753,20 @@ void __fastcall TPlot::MenuOptionsClick(TObject *Sender)
     AnsiString tlefile=TLEFile,tlesatfile=TLESatFile;
     double oopos[3];
     int timesyncout=TimeSyncOut,rcvpos=RcvPos;
-    
+
     trace(3,"MenuOptionsClick\n");
-    
+
     matcpy(oopos,OOPos,3,1);
     PlotOptDialog->Left=Left+Width/2-PlotOptDialog->Width/2;
     PlotOptDialog->Top=Top+Height/2-PlotOptDialog->Height/2;
     PlotOptDialog->Plot=this;
-    
+
     if (PlotOptDialog->ShowModal()!=mrOk) return;
-    
+
     SaveOpt();
-    
+
     for (int i=0;i<3;i++) oopos[i]-=OOPos[i];
-    
+
     if (TLEFile!=tlefile) {
         free(TLEData.data);
         TLEData.data=NULL;
@@ -787,7 +787,7 @@ void __fastcall TPlot::MenuOptionsClick(TObject *Sender)
     UpdateSatList();
     Refresh();
     Timer->Interval=RefCycle;
-    
+
     for (int i=0;i<RangeList->Count;i++) {
         AnsiString str=RangeList->Items->Strings[i];
         double range;
@@ -814,7 +814,7 @@ void __fastcall TPlot::MenuOptionsClick(TObject *Sender)
 void __fastcall TPlot::MenuToolBarClick(TObject *Sender)
 {
     trace(3,"MenuToolBarClick\n");
-    
+
     MenuToolBar->Checked=!MenuToolBar->Checked;
     Panel1->Visible=MenuToolBar->Checked;
     UpdateSize();
@@ -824,7 +824,7 @@ void __fastcall TPlot::MenuToolBarClick(TObject *Sender)
 void __fastcall TPlot::MenuStatusBarClick(TObject *Sender)
 {
     trace(3,"MenuStatusBarClick\n");
-    
+
     MenuStatusBar->Checked=!MenuStatusBar->Checked;
     Panel2->Visible=MenuStatusBar->Checked;
     UpdateSize();
@@ -834,7 +834,7 @@ void __fastcall TPlot::MenuStatusBarClick(TObject *Sender)
 void __fastcall TPlot::MenuBrowseClick(TObject *Sender)
 {
     trace(3,"MenuBrowseClick\n");
-    
+
 	MenuBrowse->Checked=!MenuBrowse->Checked;
     if (MenuBrowse->Checked) {
         Splitter1->Left=PanelBrowse->Width;
@@ -852,14 +852,14 @@ void __fastcall TPlot::MenuBrowseClick(TObject *Sender)
 void __fastcall TPlot::MenuWaypointClick(TObject *Sender)
 {
     trace(3,"MenuWaypointClick\n");
-    
+
     PntDialog->Show();
 }
 // callback on menu-input-monitor-1 -----------------------------------------
 void __fastcall TPlot::MenuMonitor1Click(TObject *Sender)
 {
     trace(3,"MenuMonitor1Click\n");
-    
+
     Console1->Caption="Monitor RT Input 1";
     Console1->Show();
 }
@@ -867,7 +867,7 @@ void __fastcall TPlot::MenuMonitor1Click(TObject *Sender)
 void __fastcall TPlot::MenuMonitor2Click(TObject *Sender)
 {
     trace(3,"MenuMonitor2Click\n");
-    
+
     Console2->Caption="Monitor RT Input 2";
     Console2->Show();
 }
@@ -875,7 +875,7 @@ void __fastcall TPlot::MenuMonitor2Click(TObject *Sender)
 void __fastcall TPlot::MenuMapViewClick(TObject *Sender)
 {
     AnsiString s;
-    
+
     MapView->Caption=
         s.sprintf("%s ver.%s %s: Map View",PRGNAME,VER_RTKLIB,PATCH_LEVEL);
     MapView->Show();
@@ -884,7 +884,7 @@ void __fastcall TPlot::MenuMapViewClick(TObject *Sender)
 void __fastcall TPlot::MenuCenterOriClick(TObject *Sender)
 {
     trace(3,"MenuCenterOriClick\n");
-    
+
     SetRange(0,YRange);
     Refresh();
 }
@@ -892,7 +892,7 @@ void __fastcall TPlot::MenuCenterOriClick(TObject *Sender)
 void __fastcall TPlot::MenuFitHorizClick(TObject *Sender)
 {
     trace(3,"MenuFitHorizClick\n");
-    
+
     if (PlotType==PLOT_TRK) FitRange(0); else FitTime();
     Refresh();
 }
@@ -900,7 +900,7 @@ void __fastcall TPlot::MenuFitHorizClick(TObject *Sender)
 void __fastcall TPlot::MenuFitVertClick(TObject *Sender)
 {
     trace(3,"MenuFitVertClick\n");
-    
+
     FitRange(0);
     Refresh();
 }
@@ -908,7 +908,7 @@ void __fastcall TPlot::MenuFitVertClick(TObject *Sender)
 void __fastcall TPlot::MenuShowSkyplotClick(TObject *Sender)
 {
     trace(3,"MenuShowSkyplotClick\n");
-    
+
     BtnShowSkyplot->Down=!BtnShowSkyplot->Down;
     UpdatePlot();
     UpdateEnable();
@@ -917,7 +917,7 @@ void __fastcall TPlot::MenuShowSkyplotClick(TObject *Sender)
 void __fastcall TPlot::MenuShowGridClick(TObject *Sender)
 {
     trace(3,"MenuShowGrid\n");
-    
+
     BtnShowGrid->Down=!BtnShowGrid->Down;
     UpdatePlot();
     UpdateEnable();
@@ -926,7 +926,7 @@ void __fastcall TPlot::MenuShowGridClick(TObject *Sender)
 void __fastcall TPlot::MenuShowImgClick(TObject *Sender)
 {
     trace(3,"MenuShowImgClick\n");
-    
+
     BtnShowImg->Down=!BtnShowImg->Down;
     UpdatePlot();
     UpdateEnable();
@@ -935,7 +935,7 @@ void __fastcall TPlot::MenuShowImgClick(TObject *Sender)
 void __fastcall TPlot::MenuShowTrackClick(TObject *Sender)
 {
     trace(3,"MenuShowTrackClick\n");
-    
+
     BtnShowTrack->Down=!BtnShowTrack->Down;
     if (!BtnShowTrack->Down) {
         BtnFixHoriz->Down=false;
@@ -948,7 +948,7 @@ void __fastcall TPlot::MenuShowTrackClick(TObject *Sender)
 void __fastcall TPlot::MenuFixCentClick(TObject *Sender)
 {
     trace(3,"MenuFixCentClick\n");
-    
+
     BtnFixCent->Down=!BtnFixCent->Down;
     UpdatePlot();
     UpdateEnable();
@@ -957,7 +957,7 @@ void __fastcall TPlot::MenuFixCentClick(TObject *Sender)
 void __fastcall TPlot::MenuFixHorizClick(TObject *Sender)
 {
     trace(3,"MenuFixHorizClick\n");
-    
+
     BtnFixHoriz->Down=!BtnFixHoriz->Down;
     Xcent=0.0;
     UpdatePlot();
@@ -967,7 +967,7 @@ void __fastcall TPlot::MenuFixHorizClick(TObject *Sender)
 void __fastcall TPlot::MenuFixVertClick(TObject *Sender)
 {
     trace(3,"MenuFixVertClick\n");
-    
+
     BtnFixVert->Down=!BtnFixVert->Down;
     UpdatePlot();
     UpdateEnable();
@@ -976,9 +976,9 @@ void __fastcall TPlot::MenuFixVertClick(TObject *Sender)
 void __fastcall TPlot::MenuShowMapClick(TObject *Sender)
 {
     trace(3,"MenuShowPointClick\n");
-    
+
     BtnShowMap->Down=!BtnShowMap->Down;
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -986,14 +986,14 @@ void __fastcall TPlot::MenuShowMapClick(TObject *Sender)
 void __fastcall TPlot::MenuAnimStartClick(TObject *Sender)
 {
     trace(3,"MenuAnimStartClick\n");
-    
+
     BtnAnimate->Down=true;
 }
 // callback on menu-animation-stop ------------------------------------------
 void __fastcall TPlot::MenuAnimStopClick(TObject *Sender)
 {
     trace(3,"MenuAnimStopClick\n");
-    
+
     BtnAnimate->Down=false;
 }
 // callback on menu-windows-maximize ----------------------------------------
@@ -1028,10 +1028,10 @@ void __fastcall TPlot::DispGesture(TObject *Sender, const TGestureEventInfo &Eve
 #if 0
     AnsiString s;
     int b,e;
-    
+
     b=EventInfo.Flags.Contains(gfBegin);
     e=EventInfo.Flags.Contains(gfEnd);
-    
+
 	if (EventInfo.GestureID==Controls::igiZoom) {
         s.sprintf("zoom: Location=%d,%d,Flag=%d,%d,Angle=%.1f,Disnance=%d",
                   EventInfo.Location.X,EventInfo.Location.Y,b,e,
@@ -1056,7 +1056,7 @@ void __fastcall TPlot::DispGesture(TObject *Sender, const TGestureEventInfo &Eve
 void __fastcall TPlot::MenuAboutClick(TObject *Sender)
 {
     trace(3,"MenuAboutClick\n");
-    
+
     AboutDialog->About=PRGNAME;
     AboutDialog->IconIndex=2;
     AboutDialog->ShowModal();
@@ -1065,7 +1065,7 @@ void __fastcall TPlot::MenuAboutClick(TObject *Sender)
 void __fastcall TPlot::BtnConnectClick(TObject *Sender)
 {
     trace(3,"BtnConnectClick\n");
-    
+
     if (!ConnectState) MenuConnectClick(Sender);
     else MenuDisconnectClick(Sender);
 }
@@ -1073,7 +1073,7 @@ void __fastcall TPlot::BtnConnectClick(TObject *Sender)
 void __fastcall TPlot::BtnSol1Click(TObject *Sender)
 {
     trace(3,"BtnSol1Click\n");
-    
+
     BtnSol12->Down=false;
     UpdateTime();
     UpdatePlot();
@@ -1083,42 +1083,42 @@ void __fastcall TPlot::BtnSol1Click(TObject *Sender)
 void __fastcall TPlot::BtnSol2Click(TObject *Sender)
 {
     trace(3,"BtnSol2Click\n");
-    
+
     BtnSol12->Down=false;
     UpdateTime();
-    UpdatePlot(); 
+    UpdatePlot();
     UpdateEnable();
 }
 // callback on button-solution-1-2 ------------------------------------------
 void __fastcall TPlot::BtnSol12Click(TObject *Sender)
 {
     trace(3,"BtnSol12Click\n");
-    
+
     BtnSol1->Down=false;
     BtnSol2->Down=false;
     UpdateTime();
-    UpdatePlot(); 
+    UpdatePlot();
     UpdateEnable();
 }
 // callback on button-solution-1 double-click -------------------------------
 void __fastcall TPlot::BtnSol1DblClick(TObject *Sender)
 {
     trace(3,"BtnSol1DblClick\n");
-    
+
     MenuOpenSol1Click(Sender);
 }
 // callback on button-solution-2 double-click -------------------------------
 void __fastcall TPlot::BtnSol2DblClick(TObject *Sender)
 {
     trace(3,"BtnSol2DblClick\n");
-    
+
     MenuOpenSol2Click(Sender);
 }
 // callback on button-show-map-image ----------------------------------------
 void __fastcall TPlot::BtnShowImgClick(TObject *Sender)
 {
     trace(3,"BtnShowMapClick\n");
-    
+
     UpdateEnable();
     Refresh();
 }
@@ -1126,7 +1126,7 @@ void __fastcall TPlot::BtnShowImgClick(TObject *Sender)
 void __fastcall TPlot::BtnShowSkyplotClick(TObject *Sender)
 {
     trace(3,"BtnShowSkyplotClick\n");
-    
+
 	UpdateEnable();
     Refresh();
 }
@@ -1134,7 +1134,7 @@ void __fastcall TPlot::BtnShowSkyplotClick(TObject *Sender)
 void __fastcall TPlot::BtnShowGridClick(TObject *Sender)
 {
     trace(3,"BtnShowGridClick\n");
-    
+
 	UpdateEnable();
     Refresh();
 }
@@ -1142,7 +1142,7 @@ void __fastcall TPlot::BtnShowGridClick(TObject *Sender)
 void __fastcall TPlot::BtnOn1Click(TObject *Sender)
 {
     trace(3,"BtnOn1Click\n");
-    
+
     UpdateSize();
     Refresh();
 }
@@ -1150,7 +1150,7 @@ void __fastcall TPlot::BtnOn1Click(TObject *Sender)
 void __fastcall TPlot::BtnOn2Click(TObject *Sender)
 {
     trace(3,"BtnOn2Click\n");
-    
+
     UpdateSize();
     Refresh();
 }
@@ -1158,7 +1158,7 @@ void __fastcall TPlot::BtnOn2Click(TObject *Sender)
 void __fastcall TPlot::BtnOn3Click(TObject *Sender)
 {
     trace(3,"BtnOn3Click\n");
-    
+
     UpdateSize();
     Refresh();
 }
@@ -1168,7 +1168,7 @@ void __fastcall TPlot::BtnRangeListClick(TObject *Sender)
     TSpeedButton *btn=(TSpeedButton *)Sender;
 
     trace(3,"BtnRangeListClick\n");
-    
+
     RangeList->Left=btn->Parent->Left+btn->Left+btn->Width-RangeList->Width;
     RangeList->Height=RangeList->ItemHeight*RangeList->Items->Count+2;
     RangeList->Visible=!RangeList->Visible;
@@ -1179,17 +1179,17 @@ void __fastcall TPlot::RangeListClick(TObject *Sender)
     AnsiString str;
     char unit[32]="";
     int i;
-    
+
     trace(3,"RangeListClick\n");
-    
+
     RangeList->Visible=false;
     if ((i=RangeList->ItemIndex)<0) return;
-    
+
     str=RangeList->Items->Strings[i];
     if (sscanf(str.c_str(),"%lf%s",&YRange,unit)<1) return;
     if      (!strcmp(unit,"cm")) YRange*=0.01;
     else if (!strcmp(unit,"km")) YRange*=1000.0;
-    
+
     SetRange(0,YRange);
     UpdatePlot();
     UpdateEnable();
@@ -1198,7 +1198,7 @@ void __fastcall TPlot::RangeListClick(TObject *Sender)
 void __fastcall TPlot::BtnCenterOriClick(TObject *Sender)
 {
     trace(3,"BtnCenterOriClick\n");
-    
+
     RangeList->Visible=false;
     MenuCenterOriClick(Sender);
 }
@@ -1206,21 +1206,21 @@ void __fastcall TPlot::BtnCenterOriClick(TObject *Sender)
 void __fastcall TPlot::BtnFitHorizClick(TObject *Sender)
 {
     trace(3,"BtnFitHorizClick\n");
-    
+
     MenuFitHorizClick(Sender);
 }
 // callback on button-fit-vertical ------------------------------------------
 void __fastcall TPlot::BtnFitVertClick(TObject *Sender)
 {
     trace(3,"BtnFitVertClick\n");
-    
+
     MenuFitVertClick(Sender);
 }
 // callback on button show-track-points -------------------------------------
 void __fastcall TPlot::BtnShowTrackClick(TObject *Sender)
 {
     trace(3,"BtnShowTrackClick\n");
-    
+
     if (!BtnShowTrack->Down) {
         BtnFixHoriz->Down=false;
         BtnFixVert ->Down=false;
@@ -1232,7 +1232,7 @@ void __fastcall TPlot::BtnShowTrackClick(TObject *Sender)
 void __fastcall TPlot::BtnFixHorizClick(TObject *Sender)
 {
     trace(3,"BtnFixHorizClick\n");
-    
+
     Xcent=0.0;
     UpdatePlot();
     UpdateEnable();
@@ -1241,7 +1241,7 @@ void __fastcall TPlot::BtnFixHorizClick(TObject *Sender)
 void __fastcall TPlot::BtnFixVertClick(TObject *Sender)
 {
     trace(3,"BtnFixVertClick\n");
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -1249,7 +1249,7 @@ void __fastcall TPlot::BtnFixVertClick(TObject *Sender)
 void __fastcall TPlot::BtnFixCentClick(TObject *Sender)
 {
     trace(3,"BtnFixCentClick\n");
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -1257,7 +1257,7 @@ void __fastcall TPlot::BtnFixCentClick(TObject *Sender)
 void __fastcall TPlot::BtnShowMapClick(TObject *Sender)
 {
     trace(3,"BtnShowPointClick\n");
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -1265,35 +1265,35 @@ void __fastcall TPlot::BtnShowMapClick(TObject *Sender)
 void __fastcall TPlot::BtnOptionsClick(TObject *Sender)
 {
     trace(3,"BtnOptionsClick\n");
-    
+
     MenuOptionsClick(Sender);
 }
 // callback on button-gm-view -----------------------------------------------
 void __fastcall TPlot::BtnMapViewClick(TObject *Sender)
 {
     trace(3,"BtnMapViewClick\n");
-    
+
     MenuMapViewClick(Sender);
 }
 // callback on button-animation ---------------------------------------------
 void __fastcall TPlot::BtnAnimateClick(TObject *Sender)
 {
     trace(3,"BtnAnimateClick\n");
-    
+
     UpdateEnable();
 }
 // callback on button-clear -------------------------------------------------
 void __fastcall TPlot::BtnClearClick(TObject *Sender)
 {
     trace(3,"BtnClearClick\n");
-    
+
     MenuClearClick(Sender);
 }
 // callback on button-reload ------------------------------------------------
 void __fastcall TPlot::BtnReloadClick(TObject *Sender)
 {
     trace(3,"BtnReloadClick\n");
-    
+
     MenuReloadClick(Sender);
 }
 // callback on button-message 2 ---------------------------------------------
@@ -1305,9 +1305,9 @@ void __fastcall TPlot::BtnMessage2Click(TObject *Sender)
 void __fastcall TPlot::PlotTypeSChange(TObject *Sender)
 {
     int i;
-    
+
     trace(3,"PlotTypeSChnage\n");
-    
+
     for (i=0;*PTypes[i];i++) {
         if (PlotTypeS->Text==PTypes[i]) UpdateType(i);
     }
@@ -1319,7 +1319,7 @@ void __fastcall TPlot::PlotTypeSChange(TObject *Sender)
 void __fastcall TPlot::QFlagChange(TObject *Sender)
 {
     trace(3,"QFlagChange\n");
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -1327,7 +1327,7 @@ void __fastcall TPlot::QFlagChange(TObject *Sender)
 void __fastcall TPlot::ObsTypeChange(TObject *Sender)
 {
     trace(3,"ObsTypeChange\n");
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -1335,7 +1335,7 @@ void __fastcall TPlot::ObsTypeChange(TObject *Sender)
 void __fastcall TPlot::DopTypeChange(TObject *Sender)
 {
     trace(3,"DopTypeChange\n");
-    
+
     UpdatePlot();
     UpdateEnable();
 }
@@ -1343,7 +1343,7 @@ void __fastcall TPlot::DopTypeChange(TObject *Sender)
 void __fastcall TPlot::SatListChange(TObject *Sender)
 {
     trace(3,"SatListChange\n");
-    
+
     UpdateSatSel();
     UpdatePlot();
     UpdateEnable();
@@ -1352,9 +1352,9 @@ void __fastcall TPlot::SatListChange(TObject *Sender)
 void __fastcall TPlot::TimeScrollChange(TObject *Sender)
 {
     int sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(3,"TimeScrollChange\n");
-    
+
     if (PlotType<=PLOT_NSAT||PlotType==PLOT_RES) {
         SolIndex[sel]=TimeScroll->Position;
     }
@@ -1367,7 +1367,7 @@ void __fastcall TPlot::TimeScrollChange(TObject *Sender)
 void __fastcall TPlot::DispPaint(TObject *Sender)
 {
     trace(3,"DispPaint\n");
-    
+
     UpdateDisp();
 }
 // callback on mouse-down event ---------------------------------------------
@@ -1375,11 +1375,11 @@ void __fastcall TPlot::DispMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
     trace(3,"DispMouseDown: X=%d Y=%d\n",X,Y);
-    
+
     X0=X; Y0=Y; Xcent0=Xcent;
-    
+
     Drag=Shift.Contains(ssLeft)?1:(Shift.Contains(ssRight)?11:0);
-    
+
     if (PlotType==PLOT_TRK) {
         MouseDownTrk(X,Y);
     }
@@ -1390,24 +1390,24 @@ void __fastcall TPlot::DispMouseDown(TObject *Sender, TMouseButton Button,
         MouseDownObs(X,Y);
     }
     else Drag=0;
-    
+
     RangeList->Visible=false;
 }
 // callback on mouse-move event ---------------------------------------------
 void __fastcall TPlot::DispMouseMove(TObject *Sender, TShiftState Shift, int X, int Y)
 {
     double x,y,xs,ys,dx,dy,dxs,dys;
-    
+
     if (X==Xn&&Y==Yn) return;
-    
+
     trace(4,"DispMouseMove: X=%d Y=%d\n",X,Y);
-    
+
     Xn=X; Yn=Y;
     dx=(X0-X)*Xs;
     dy=(Y-Y0)*Ys;
     dxs=pow(2.0,(X0-X)/100.0);
     dys=pow(2.0,(Y-Y0)/100.0);
-    
+
     if (Drag==0) {
         UpdatePoint(X,Y);
     }
@@ -1426,7 +1426,7 @@ void __fastcall TPlot::DispMouseUp(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
     trace(3,"DispMouseUp: X=%d Y=%d\n",X,Y);
-    
+
     Drag=0;
     Screen->Cursor=crDefault;
     Refresh();
@@ -1437,11 +1437,11 @@ void __fastcall TPlot::DispDblClick(TObject *Sender)
 {
     TPoint p((int)X0,(int)Y0);
     double x,y;
-    
+
     trace(3,"DispDblClick X=%d Y=%d\n",p.x,p.y);
-    
+
     if (BtnFixHoriz->Down) return;
-    
+
     if (PlotType==PLOT_TRK) {
         GraphT->ToPos(p,x,y);
         GraphT->SetCent(x,y);
@@ -1463,7 +1463,7 @@ void __fastcall TPlot::DispDblClick(TObject *Sender)
 void __fastcall TPlot::DispMouseLeave(TObject *Sender)
 {
     trace(3,"DispMouseLeave\n");
-    
+
     Xn=Yn=-1;
     Panel22->Visible=false;
     Message2->Caption="";
@@ -1472,9 +1472,9 @@ void __fastcall TPlot::DispMouseLeave(TObject *Sender)
 void __fastcall TPlot::MouseDownTrk(int X, int Y)
 {
     int i,sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(3,"MouseDownTrk: X=%d Y=%d\n",X,Y);
-    
+
     if (Drag==1&&(i=SearchPos(X,Y))>=0) {
         SolIndex[sel]=i;
         UpdateTime();
@@ -1497,9 +1497,9 @@ void __fastcall TPlot::MouseDownSol(int X, int Y)
     sol_t *data;
     double x,xl[2],yl[2];
     int i,area=-1,sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(3,"MouseDownSol: X=%d Y=%d\n",X,Y);
-    
+
     if (PlotType==PLOT_SNR) {
         if (0<=ObsIndex&&ObsIndex<NObs) time=Obs.data[IndexObs[ObsIndex]].time;
     }
@@ -1507,12 +1507,12 @@ void __fastcall TPlot::MouseDownSol(int X, int Y)
         if ((data=getsol(SolData+sel,SolIndex[sel]))) time=data->time;
     }
     if (time.time&&!BtnFixHoriz->Down) {
-        
+
         x=TimePos(time);
-        
+
         GraphG[0]->GetLim(xl,yl);
         GraphG[0]->ToPoint(x,yl[1],pnt);
-        
+
         if ((X-pnt.x)*(X-pnt.x)+(Y-pnt.y)*(Y-pnt.y)<25) {
             Screen->Cursor=crSizeWE;
             Drag=20;
@@ -1522,11 +1522,11 @@ void __fastcall TPlot::MouseDownSol(int X, int Y)
     }
     for (i=0;i<3;i++) {
         if (!btn[i]->Down||(i!=1&&PlotType==PLOT_SNR)) continue;
-        
+
         GraphG[i]->GetCent(Xc,Yc);
         GraphG[i]->GetScale(Xs,Ys);
         area=GraphG[i]->OnAxis(p);
-        
+
         if (Drag==1&&area==0) {
             Screen->Cursor=crSizeAll;
             Drag+=i;
@@ -1551,16 +1551,16 @@ void __fastcall TPlot::MouseDownObs(int X, int Y)
     TPoint pnt,p(X,Y);
     double x,xl[2],yl[2];
     int area;
-    
+
     trace(3,"MouseDownObs: X=%d Y=%d\n",X,Y);
-    
+
     if (0<=ObsIndex&&ObsIndex<NObs&&!BtnFixHoriz->Down) {
-        
+
         x=TimePos(Obs.data[IndexObs[ObsIndex]].time);
-        
+
         GraphR->GetLim(xl,yl);
         GraphR->ToPoint(x,yl[1],pnt);
-        
+
         if ((X-pnt.x)*(X-pnt.x)+(Y-pnt.y)*(Y-pnt.y)<25) {
             Screen->Cursor=crSizeWE;
             Drag=20;
@@ -1571,7 +1571,7 @@ void __fastcall TPlot::MouseDownObs(int X, int Y)
     GraphR->GetCent(Xc,Yc);
     GraphR->GetScale(Xs,Ys);
     area=GraphR->OnAxis(p);
-    
+
     if (area==0||area==8) {
         Screen->Cursor=Drag==1?crSizeWE:crHSplit;
         Drag+=3;
@@ -1583,7 +1583,7 @@ void __fastcall TPlot::MouseMoveTrk(int X, int Y, double dx, double dy,
     double dxs, double dys)
 {
     trace(4,"MouseMoveTrk: X=%d Y=%d\n",X,Y);
-    
+
     if (Drag==1&&!BtnFixHoriz->Down) {
         GraphT->SetCent(Xc+dx,Yc+dy);
     }
@@ -1600,9 +1600,9 @@ void __fastcall TPlot::MouseMoveSol(int X, int Y, double dx, double dy,
     TPoint p1,p2,p(X,Y);
     double x,y,xs,ys;
     int i,sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(4,"MouseMoveSol: X=%d Y=%d\n",X,Y);
-    
+
     if (Drag<=4) {
         for (i=0;i<3;i++) {
             GraphG[i]->GetCent(x,y);
@@ -1666,16 +1666,16 @@ void __fastcall TPlot::MouseMoveObs(int X, int Y, double dx, double dy,
     TPoint p1,p2,p(X,Y);
     double x,y,xs,ys;
     int i;
-    
+
     trace(4,"MouseMoveObs: X=%d Y=%d\n",X,Y);
-    
+
     if (Drag<=4) {
         GraphR->GetCent(x,y);
         if (!BtnFixHoriz->Down) x=Xc+dx;
         if (!BtnFixVert ->Down) y=Yc+dy;
         GraphR->SetCent(x,y);
         SetCentX(x);
-        
+
         if (BtnFixHoriz->Down) {
             GraphR->GetPos(p1,p2);
             Xcent=Xcent0+2.0*(X-X0)/(p2.x-p1.x);
@@ -1706,19 +1706,19 @@ void __fastcall TPlot::MouseWheel(TObject *Sender, TShiftState Shift,
     TPoint p(Xn,Yn);
     double xs,ys,ds=pow(2.0,-WheelDelta/1200.0);
     int i,area=-1;
-    
+
     Handled=true;
-    
+
     trace(4,"MouseWheel: WheelDelta=%d\n",WheelDelta);
-    
+
     if (Xn<0||Yn<0) return;
-    
+
     if (PlotType==PLOT_TRK) { // track-plot
         GraphT->GetScale(xs,ys);
         GraphT->SetScale(xs*ds,ys*ds);
     }
     else if (PlotType<=PLOT_NSAT||PlotType==PLOT_RES||PlotType==PLOT_SNR) {
-        
+
         for (i=0;i<3;i++) {
             if (PlotType==PLOT_SNR&&i!=1) continue;
             area=GraphG[i]->OnAxis(p);
@@ -1745,14 +1745,14 @@ void __fastcall TPlot::MouseWheel(TObject *Sender, TShiftState Shift,
         }
     }
     else return;
-    
+
     Refresh();
 }
 // callback on key-press events ---------------------------------------------
 void __fastcall TPlot::CMDialogKey(Messages::TWMKey &Message)
 {
     trace(3,"CMDialogKey:\n");
-    
+
     if (Message.CharCode!=VK_UP  &&Message.CharCode!=VK_DOWN &&
         Message.CharCode!=VK_LEFT&&Message.CharCode!=VK_RIGHT) {
         TForm::Dispatch(&Message);
@@ -1765,9 +1765,9 @@ void __fastcall TPlot::FormKeyDown(TObject *Sender, WORD &Key,
     double sfact=1.05,fact=Shift.Contains(ssShift)?1.0:10.0;
     double xc,yc,yc1,yc2,yc3,xs,ys,ys1,ys2,ys3;
     int key=Shift.Contains(ssCtrl)?10:0;
-    
+
     trace(3,"FormKeyDown:\n");
-    
+
     switch (Key) {
         case VK_UP   : key+=1; break;
         case VK_DOWN : key+=2; break;
@@ -1776,9 +1776,9 @@ void __fastcall TPlot::FormKeyDown(TObject *Sender, WORD &Key,
         default: return;
     }
     if (Shift.Contains(ssAlt)) return;
-    
+
     Key=0; // stop dispatch key event
-    
+
     if (PlotType==PLOT_TRK) {
         GraphT->GetCent(xc,yc);
         GraphT->GetScale(xs,ys);
@@ -1845,9 +1845,9 @@ void __fastcall TPlot::TimerTimer(TObject *Sender)
     int i,j,n,inb,inr,cycle,nmsg[2]={0},stat,istat;
     int sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
     char msg[MAXSTRMSG]="",tstr[32];
-    
+
     trace(4,"TimeTimer\n");
-    
+
     if (!ConnectState) {
         StrStatus1->Color=clBtnFace;
         StrStatus2->Color=clBtnFace;
@@ -1867,7 +1867,7 @@ void __fastcall TPlot::TimerTimer(TObject *Sender)
                 connectmsg+=s.sprintf("(%d) %s ",i+1,msg);
             }
             while ((n=strread(Stream+i,buff,sizeof(buff)))>0) {
-                
+
                 for (j=0;j<n;j++) {
                     istat=inputsol(buff[j],ts,ts,tint,0,&opt,SolData+i);
                     if (istat==0) continue;
@@ -1894,12 +1894,12 @@ void __fastcall TPlot::TimerTimer(TObject *Sender)
             }
         }
         ConnectMsg->Caption=connectmsg;
-        
+
         if (nmsg[0]<=0&&nmsg[1]<=0) return;
     }
     else if (BtnAnimate->Enabled&&BtnAnimate->Down) { // animation mode
         cycle=AnimCycle<=0?1:AnimCycle;
-        
+
         if (PlotType<=PLOT_NSAT||PlotType==PLOT_RES) {
             SolIndex[sel]+=cycle;
             if (SolIndex[sel]>=SolData[sel].n-1) {
@@ -1955,7 +1955,7 @@ void __fastcall TPlot::TimerTimer(TObject *Sender)
         else return;
     }
     else return;
-    
+
     UpdateTime();
     UpdatePlot();
 }
@@ -1964,9 +1964,9 @@ void __fastcall TPlot::SetCentX(double c)
 {
     double x,y;
     int i;
-    
+
     trace(3,"SetCentX: c=%.3f:\n",c);
-    
+
     GraphR->GetCent(x,y);
     GraphR->SetCent(c,y);
     for (i=0;i<3;i++) {
@@ -1979,9 +1979,9 @@ void __fastcall TPlot::SetScaleX(double s)
 {
     double xs,ys;
     int i;
-    
+
     trace(3,"SetScaleX: s=%.3f:\n",s);
-    
+
     GraphR->GetScale(xs,ys);
     GraphR->SetScale(s ,ys);
     for (i=0;i<3;i++) {
@@ -1993,9 +1993,9 @@ void __fastcall TPlot::SetScaleX(double s)
 void __fastcall TPlot::UpdateType(int type)
 {
     trace(3,"UpdateType: type=%d\n",type);
-    
+
     PlotType=type;
-    
+
     if (AutoScale&&PlotType<=PLOT_SOLA&&(SolData[0].n>0||SolData[1].n>0)) {
         FitRange(0);
     }
@@ -2011,14 +2011,14 @@ void __fastcall TPlot::UpdateSize(void)
     TPoint p1(0,0),p2(Disp->Width,Disp->Height);
     double xs,ys,font_px=Disp->Font->Size*1.33;
     int i,n,h,tmargin,bmargin,rmargin,lmargin;
-    
+
     trace(3,"UpdateSize\n");
-    
+
     tmargin=(int)(font_px*0.9); // top margin (px)
     bmargin=(int)(font_px*1.8); // bottom
     rmargin=(int)(font_px*1.2); // right
     lmargin=(int)(font_px*3.6); // left
-    
+
     GraphT->SetPos(p1,p2);
     GraphS->SetPos(p1,p2);
     GraphS->GetScale(xs,ys);
@@ -2027,7 +2027,7 @@ void __fastcall TPlot::UpdateSize(void)
     p1.x+=lmargin; p1.y+=tmargin;
     p2.x-=rmargin; p2.y=p2.y-bmargin;
     GraphR->SetPos(p1,p2);
-    
+
     p1.y=tmargin; p2.y=p1.y;
     for (i=n=0;i<3;i++) if (btn[i]->Down) n++;
     for (i=0;i<3;i++) {
@@ -2052,9 +2052,9 @@ void __fastcall TPlot::UpdateSize(void)
 void __fastcall TPlot::UpdateColor(void)
 {
     int i;
-    
+
     trace(3,"UpdateColor\n");
-    
+
     for (i=0;i<3;i++) {
         GraphT   ->Color[i]=CColor[i];
         GraphR   ->Color[i]=CColor[i];
@@ -2072,9 +2072,9 @@ void __fastcall TPlot::UpdateTime(void)
     sol_t *sol;
     double tt;
     int i,j,sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(3,"UpdateTime\n");
-    
+
     // time-cursor change on solution-plot
     if (PlotType<=PLOT_NSAT||PlotType<=PLOT_RESE) {
         TimeScroll->Max=MAX(1,SolData[sel].n-1);
@@ -2088,7 +2088,7 @@ void __fastcall TPlot::UpdateTime(void)
         time=Obs.data[IndexObs[ObsIndex]].time;
     }
     else return;
-    
+
     // time-synchronization between solutions and observation-data
     for (sel=0;sel<2;sel++) {
        i=SolIndex[sel];
@@ -2132,9 +2132,9 @@ void __fastcall TPlot::UpdateOrigin(void)
     double opos[3]={0},pos[3],ovel[3]={0};
     int i,j,n=0,sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
     char file[1024],sta[16]="",*p;
-    
+
     trace(3,"UpdateOrigin\n");
-    
+
     if (Origin==ORG_STARTPOS) {
         if (!(sol=getsol(SolData,0))||sol->type!=0) return;
         for (i=0;i<3;i++) opos[i]=sol->rr[i];
@@ -2168,15 +2168,15 @@ void __fastcall TPlot::UpdateOrigin(void)
     }
     else if (Origin==ORG_AUTOPOS) {
         if (SolFiles[sel]->Count>0) {
-            
+
             strcpy(file,U2A(SolFiles[sel]->Strings[0]).c_str());
-            
+
             if ((p=strrchr(file,'\\'))) strncpy(sta,p+1,4);
             else strncpy(sta,file,4);
             for (p=sta;*p;p++) *p=(char)toupper(*p);
-            
+
             strcpy(file,U2A(RefDialog->StaPosFile).c_str());
-            
+
             ReadStaPos(file,sta,opos);
         }
     }
@@ -2212,16 +2212,16 @@ void __fastcall TPlot::UpdateSatMask(void)
 {
     int sat,prn;
     char buff[256],*p;
-    
+
     trace(3,"UpdateSatMask\n");
-    
+
     for (sat=1;sat<=MAXSAT;sat++) SatMask[sat-1]=0;
     for (sat=1;sat<=MAXSAT;sat++) {
         if (!(satsys(sat,&prn)&NavSys)) SatMask[sat-1]=1;
     }
     if (ExSats!="") {
         strcpy(buff,ExSats.c_str());
-        
+
         for (p=strtok(buff," ");p;p=strtok(NULL," ")) {
             if (*p=='+'&&(sat=satid2no(p+1))) SatMask[sat-1]=0; // included
             else if ((sat=satid2no(p)))       SatMask[sat-1]=1; // excluded
@@ -2234,7 +2234,7 @@ void __fastcall TPlot::UpdateSatSel(void)
     AnsiString SatListText=SatList->Text;
     char id[16];
     int i,sys=0;
-    
+
     if      (SatListText=="G") sys=SYS_GPS;
     else if (SatListText=="R") sys=SYS_GLO;
     else if (SatListText=="E") sys=SYS_GAL;
@@ -2255,12 +2255,12 @@ void __fastcall TPlot::UpdateEnable(void)
     int i,data=BtnSol1->Down||BtnSol2->Down||BtnSol12->Down;
     int plot=PLOT_SOLP<=PlotType&&PlotType<=PLOT_NSAT;
     int sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(3,"UpdateEnable\n");
-    
+
     Panel1         ->Visible=MenuToolBar  ->Checked;
     Panel2         ->Visible=MenuStatusBar->Checked;
-    
+
     BtnConnect     ->Down   = ConnectState;
     BtnSol1        ->Enabled=true;
     BtnSol2        ->Enabled=PlotType<=PLOT_NSAT||PlotType==PLOT_RES||PlotType==PLOT_RESE;
@@ -2279,7 +2279,7 @@ void __fastcall TPlot::UpdateEnable(void)
     QFlag          ->Enabled=data;
     ObsType        ->Enabled=data&&!SimObs;
     ObsType2       ->Enabled=data&&!SimObs;
-    
+
     Panel102       ->Visible=PlotType==PLOT_SOLP||PlotType==PLOT_SOLV||
                              PlotType==PLOT_SOLA||PlotType==PLOT_NSAT||
                              PlotType==PLOT_RES ||PlotType==PLOT_RESE||
@@ -2289,7 +2289,7 @@ void __fastcall TPlot::UpdateEnable(void)
     BtnOn2         ->Enabled=plot||PlotType==PLOT_SNR||PlotType==PLOT_RES||
                              PlotType==PLOT_RESE||PlotType==PLOT_SNRE;
     BtnOn3         ->Enabled=plot||PlotType==PLOT_SNR||PlotType==PLOT_RES;
-    
+
     BtnCenterOri   ->Visible=PlotType==PLOT_TRK ||PlotType==PLOT_SOLP||
                              PlotType==PLOT_SOLV||PlotType==PLOT_SOLA||
                              PlotType==PLOT_NSAT;
@@ -2298,7 +2298,7 @@ void __fastcall TPlot::UpdateEnable(void)
                              PlotType==PLOT_SOLV||PlotType==PLOT_SOLA||
                              PlotType==PLOT_NSAT;
     BtnRangeList   ->Enabled=PlotType!=PLOT_NSAT;
-    
+
     BtnFitHoriz    ->Visible=PlotType==PLOT_SOLP||PlotType==PLOT_SOLV||
                              PlotType==PLOT_SOLA||PlotType==PLOT_NSAT||
                              PlotType==PLOT_RES ||PlotType==PLOT_OBS ||
@@ -2330,7 +2330,7 @@ void __fastcall TPlot::UpdateEnable(void)
     BtnAnimate     ->Visible=data&&BtnShowTrack->Down;
     TimeScroll     ->Visible=data&&BtnShowTrack->Down;
     TimeScroll     ->Enabled=data&&BtnShowTrack->Down;
-    
+
     if (!BtnShowTrack->Down) {
         BtnFixHoriz->Enabled=false;
         BtnFixVert ->Enabled=false;
@@ -2349,9 +2349,9 @@ void __fastcall TPlot::UpdateEnable(void)
     BtnShowMap     ->Left=BtnShowSkyplot->Left+BtnShowSkyplot->Width;
     BtnShowImg     ->Left=BtnShowMap    ->Left+BtnShowMap    ->Width;
 	BtnMapView     ->Left=BtnShowImg    ->Left+BtnShowImg    ->Width;
-	
+
     BtnFreq        ->Left=BtnClear      ->Left-BtnFreq       ->Width;
-    
+
     MenuMapImg     ->Enabled=MapImage->Height>0;
     MenuSkyImg     ->Enabled=SkyImageI->Height>0;
     MenuSrcSol     ->Enabled=SolFiles[sel]->Count>0;
@@ -2388,7 +2388,7 @@ void __fastcall TPlot::UpdateEnable(void)
     MenuOpenNav    ->Enabled=!ConnectState;
     MenuOpenElevMask->Enabled=!ConnectState;
     MenuReload     ->Enabled=!ConnectState;
-    
+
     BtnReload      ->Enabled=!ConnectState;
     StrStatus      ->Enabled= ConnectState;
     BtnFreq        ->Visible=FrqType->Visible||ObsType->Visible||ObsType2->Visible;
@@ -2400,16 +2400,16 @@ int __fastcall TPlot::FitPos(gtime_t *time, double *opos, double *ovel)
     sol_t *sol;
     int i,j;
     double t,x[2],Ay[3][2]={{0}},AA[3][4]={{0}};
-    
+
     trace(3,"FitPos\n");
-    
+
     if (SolData[0].n<=0) return 0;
-    
+
     for (i=0;(sol=getsol(SolData,i));i++) {
         if (sol->type!=0) continue;
         if (time->time==0) *time=sol->time;
         t=timediff(sol->time,*time);
-        
+
         for (j=0;j<3;j++) {
             Ay[j][0]+=sol->rr[j];
             Ay[j][1]+=sol->rr[j]*t;
@@ -2432,12 +2432,12 @@ void __fastcall TPlot::FitTime(void)
     sol_t *sols,*sole;
     double tl[2]={86400.0*7,0.0},tp[2],xl[2],yl[2],zl[2];
     int sel=!BtnSol1->Down&&BtnSol2->Down?1:0;
-    
+
     trace(3,"FitTime\n");
-    
+
     sols=getsol(SolData+sel,0);
     sole=getsol(SolData+sel,SolData[sel].n-1);
-    
+
     if (sols&&sole) {
         tl[0]=MIN(tl[0],TimePos(sols->time));
         tl[1]=MAX(tl[1],TimePos(sole->time));
@@ -2448,7 +2448,7 @@ void __fastcall TPlot::FitTime(void)
     }
     if (TimeEna[0]) tl[0]=TimePos(TimeStart);
     if (TimeEna[1]) tl[1]=TimePos(TimeEnd  );
-    
+
     if (tl[0]==tl[1]) {
         tl[0]=tl[0]-DEFTSPAN/2.0;
         tl[1]=tl[0]+DEFTSPAN/2.0;
@@ -2474,9 +2474,9 @@ void __fastcall TPlot::SetRange(int all, double range)
     double zl[]={-range,range};
     double xs,ys,tl[2],xp[2],pos[3];
     int w,h;
-    
+
     trace(3,"SetRange: all=%d range=%.3f\n",all,range);
-    
+
     if (all||PlotType==PLOT_TRK) {
         GraphT->SetLim(xl,yl);
         GraphT->GetScale(xs,ys);
@@ -2529,16 +2529,16 @@ void __fastcall TPlot::FitRange(int all)
     double xs,ys,xp[2],tl[2],xl[]={1E8,-1E8},yl[2]={1E8,-1E8},zl[2]={1E8,-1E8};
     double lat,lon,lats[2]={90,-90},lons[2]={180,-180},llh[3];
     int i,j,n,w,h,type=PlotType-PLOT_SOLP;
-    
+
     trace(3,"FitRange: all=%d\n",all);
-    
+
     BtnFixHoriz->Down=false;
     MenuFixHoriz->Checked=false;
-    
+
     if (BtnSol1->Down) {
-        
+
         pos=SolToPos(SolData,-1,QFlag->ItemIndex,type);
-        
+
         for (i=0;i<pos->n;i++) {
             xl[0]=MIN(xl[0],pos->x[i]);
             yl[0]=MIN(yl[0],pos->y[i]);
@@ -2550,9 +2550,9 @@ void __fastcall TPlot::FitRange(int all)
         delete pos;
     }
     if (BtnSol2->Down) {
-        
+
         pos=SolToPos(SolData+1,-1,QFlag->ItemIndex,type);
-        
+
         for (i=0;i<pos->n;i++) {
             xl[0]=MIN(xl[0],pos->x[i]);
             yl[0]=MIN(yl[0],pos->y[i]);
@@ -2564,11 +2564,11 @@ void __fastcall TPlot::FitRange(int all)
         delete pos;
     }
     if (BtnSol12->Down) {
-        
+
         pos1=SolToPos(SolData  ,-1,0,type);
         pos2=SolToPos(SolData+1,-1,0,type);
         pos=pos1->diff(pos2,QFlag->ItemIndex);
-        
+
         for (i=0;i<pos->n;i++) {
             xl[0]=MIN(xl[0],pos->x[i]);
             yl[0]=MIN(yl[0],pos->y[i]);
@@ -2587,7 +2587,7 @@ void __fastcall TPlot::FitRange(int all)
     yl[1]+=0.05;
     zl[0]-=0.05;
     zl[1]+=0.05;
-    
+
     if (all||PlotType==PLOT_TRK) {
         GraphT->SetLim(xl,yl);
         GraphT->GetScale(xs,ys);
@@ -2602,7 +2602,7 @@ void __fastcall TPlot::FitRange(int all)
     if (all) {
         if (BtnSol1->Down) {
             for (i=0;(data=getsol(SolData,i));i++) {
-                ecef2pos(data->rr,llh); 
+                ecef2pos(data->rr,llh);
                 lats[0]=MIN(lats[0],llh[0]*R2D);
                 lons[0]=MIN(lons[0],llh[1]*R2D);
                 lats[1]=MAX(lats[1],llh[0]*R2D);
@@ -2611,7 +2611,7 @@ void __fastcall TPlot::FitRange(int all)
         }
         if (BtnSol2->Down) {
             for (i=0;(data=getsol(SolData+1,i));i++) {
-                ecef2pos(data->rr,llh); 
+                ecef2pos(data->rr,llh);
                 lats[0]=MIN(lats[0],llh[0]*R2D);
                 lons[0]=MIN(lons[0],llh[1]*R2D);
                 lats[1]=MAX(lats[1],llh[0]*R2D);
@@ -2629,7 +2629,7 @@ void __fastcall TPlot::SetTrkCent(double lat, double lon)
 {
     gtime_t time={0};
     double pos[3]={0},rr[3],xyz[3];
-    
+
     if (PlotType!=PLOT_TRK) return;
     pos[0]=lat*D2R;
     pos[1]=lon*D2R;
@@ -2643,9 +2643,9 @@ void __fastcall TPlot::LoadOpt(void)
 {
     TIniFile *ini=new TIniFile(IniFile);
     AnsiString s;
-    
+
     trace(3,"LoadOpt\n");
-    
+
 //  PlotType     =ini->ReadInteger("plot","plottype",      0);
     TimeLabel    =ini->ReadInteger("plot","timelabel",     1);
     LatLonFmt    =ini->ReadInteger("plot","latlonfmt",     0);
@@ -2680,7 +2680,7 @@ void __fastcall TPlot::LoadOpt(void)
     RtFieldSep   =ini->ReadString ("plot","rtfieldsep",   "");
     RtTimeOutTime=ini->ReadInteger("plot","rttimeouttime", 0);
     RtReConnTime =ini->ReadInteger("plot","rtreconntime",10000);
-    
+
     MColor[0][0]=(TColor)ini->ReadInteger("plot","mcolor0", (int)clSilver );
     MColor[0][1]=(TColor)ini->ReadInteger("plot","mcolor1", (int)clGreen  );
     MColor[0][2]=(TColor)ini->ReadInteger("plot","mcolor2",      0x00AAFF );
@@ -2725,9 +2725,9 @@ void __fastcall TPlot::LoadOpt(void)
     CColor[1]=(TColor)ini->ReadInteger("plot","color2", (int)clSilver );
     CColor[2]=(TColor)ini->ReadInteger("plot","color3", (int)clBlack  );
     CColor[3]=(TColor)ini->ReadInteger("plot","color4", (int)clSilver );
-    
+
     RefDialog->StaPosFile=ini->ReadString ("plot","staposfile","");
-    
+
     ElMask    =ini->ReadFloat  ("plot","elmask", 0.0);
     MaxDop    =ini->ReadFloat  ("plot","maxdop",30.0);
     MaxMP     =ini->ReadFloat  ("plot","maxmp" ,10.0);
@@ -2740,13 +2740,13 @@ void __fastcall TPlot::LoadOpt(void)
     ShapeFile =ini->ReadString ("plot","shapefile","");
     TLEFile   =ini->ReadString ("plot","tlefile", "");
     TLESatFile=ini->ReadString ("plot","tlesatfile","");
-    
+
     FontName  =ini->ReadString ("plot","fontname","Tahoma");
     FontSize  =ini->ReadInteger("plot","fontsize",8);
     Font->Charset=ANSI_CHARSET;
     Font->Name=FontName;
     Font->Size=FontSize;
-    
+
     RnxOpts   =ini->ReadString ("plot","rnxopts","");
 
     MapApi    =ini->ReadInteger("mapview","mapapi" , 0);
@@ -2775,7 +2775,7 @@ void __fastcall TPlot::LoadOpt(void)
     TTextViewer::FontD=new TFont;
     TTextViewer::FontD->Name=ini->ReadString ("viewer","fontname","Consolas");
     TTextViewer::FontD->Size=ini->ReadInteger("viewer","fontsize",9);
-    
+
     MenuBrowse->Checked=ini->ReadInteger("solbrows","show",       0);
     PanelBrowse->Width =ini->ReadInteger("solbrows","split1",   100);
     DirSel->Height     =ini->ReadInteger("solbrows","split2",   150);
@@ -2786,12 +2786,12 @@ void __fastcall TPlot::LoadOpt(void)
         ;
     }
     delete ini;
-    
+
     for (int i=0;i<RangeList->Count;i++) {
         AnsiString s=RangeList->Items->Strings[i];
         double range;
         char unit[32]="";
-        
+
         if (sscanf(s.c_str(),"%lf%31s",&range,unit)<1) continue;
         if      (!strcmp(unit,"cm")) range*=0.01;
         else if (!strcmp(unit,"km")) range*=1000.0;
@@ -2806,9 +2806,9 @@ void __fastcall TPlot::SaveOpt(void)
 {
     TIniFile *ini=new TIniFile(IniFile);
     AnsiString s;
-    
+
     trace(3,"SaveOpt\n");
-    
+
 //  ini->WriteInteger("plot","plottype",     PlotType     );
     ini->WriteInteger("plot","timelabel",    TimeLabel    );
     ini->WriteInteger("plot","latlonfmt",    LatLonFmt    );
@@ -2843,7 +2843,7 @@ void __fastcall TPlot::SaveOpt(void)
     ini->WriteString ("plot","rtfieldsep",   RtFieldSep   );
     ini->WriteInteger("plot","rttimeouttime",RtTimeOutTime);
     ini->WriteInteger("plot","rtreconntime", RtReConnTime );
-    
+
     ini->WriteInteger("plot","mcolor0",     (int)MColor[0][0]);
     ini->WriteInteger("plot","mcolor1",     (int)MColor[0][1]);
     ini->WriteInteger("plot","mcolor2",     (int)MColor[0][2]);
@@ -2888,9 +2888,9 @@ void __fastcall TPlot::SaveOpt(void)
     ini->WriteInteger("plot","color2",      (int)CColor[1]);
     ini->WriteInteger("plot","color3",      (int)CColor[2]);
     ini->WriteInteger("plot","color4",      (int)CColor[3]);
-    
+
     ini->WriteString ("plot","staposfile",   RefDialog->StaPosFile);
-    
+
     ini->WriteFloat  ("plot","elmask",       ElMask        );
     ini->WriteFloat  ("plot","maxdop",       MaxDop        );
     ini->WriteFloat  ("plot","maxmp",        MaxMP         );
@@ -2903,10 +2903,10 @@ void __fastcall TPlot::SaveOpt(void)
     ini->WriteString ("plot","shapefile",    ShapeFile     );
     ini->WriteString ("plot","tlefile",      TLEFile       );
     ini->WriteString ("plot","tlesatfile",   TLESatFile    );
-    
+
     ini->WriteString ("plot","fontname",     FontName      );
     ini->WriteInteger("plot","fontsize",     FontSize      );
-    
+
     ini->WriteString ("plot","rnxopts",      RnxOpts       );
 
     ini->WriteString ("mapview","apikey",    ApiKey        );
@@ -2931,12 +2931,12 @@ void __fastcall TPlot::SaveOpt(void)
     ini->WriteInteger("viewer","color2",(int)TTextViewer::Color2  );
     ini->WriteString ("viewer","fontname",TTextViewer::FontD->Name);
     ini->WriteInteger("viewer","fontsize",TTextViewer::FontD->Size);
-    
+
     ini->WriteInteger("solbrows","show", MenuBrowse->Checked);
     ini->WriteInteger("solbrows","split1",PanelBrowse->Width);
     ini->WriteInteger("solbrows","split2",    DirSel->Height);
     ini->WriteString ("solbrows","dir",    DirSel->Directory);
-    
+
     delete ini;
 }
 //---------------------------------------------------------------------------
